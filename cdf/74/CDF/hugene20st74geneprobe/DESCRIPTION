@@ -1,0 +1,11 @@
+Package: hugene20st74geneprobe
+Title: Probe sequence data for Affymetrix HuGene microarrays, custom CDF file/package hugene20st74genecdf
+Version: 0.3.0
+Created: Tue Dec 10 2013
+Author: Johannes Rainer
+Description: Probe sequence data for Affymetrix HuGene arrays derived from Affymetrix. Probe package contains all probes/probesets defined in the hugene20st74genecdf package. Contains no MM probes. Contains only probes perfectly matching Ensembl transcripts. Contains also probes for background probes, i.e. probes that can not be aligned to the human genome.
+Maintainer: Johannes Rainer <johannes.rainer@i-med.ac.at>
+Depends: R (>= 1.6), AnnotationDbi (>= 1.5.19), hugene20st74genecdf (>= 0.3.0)
+License:  LGPL
+biocViews: AnnotationData, AffymetrixChip, hugene20st74gene, Homo_sapiens
+Packaged: Tue Dec 10 2013; jo

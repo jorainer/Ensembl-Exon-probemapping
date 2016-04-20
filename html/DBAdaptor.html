@@ -1,0 +1,156 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>DBAdaptor - An object to access the database.</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:jo@macbookjo.lan" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#methods">Methods</a></li>
+		<ul>
+
+			<li><a href="#new">new</a></li>
+			<li><a href="#get_probe_adaptor">get_probe_adaptor</a></li>
+			<li><a href="#get_gene_adaptor">get_gene_adaptor</a></li>
+			<li><a href="#dbcon">dbcon</a></li>
+		</ul>
+
+	</ul>
+
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>DBAdaptor - An object to access the database.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>use CustomCDF::DBAdaptor;
+my $db_adaptor = CustomCDF::DBAdaptor-&gt;new( host=&gt;&quot;localhost&quot;, username=&gt;&quot;anonuser&quot;, password=&gt;&quot;&quot;, dbname=&gt;&quot;homo_sapiens_hugene_cdna_73&quot; );
+$db_adaptor::db_con;</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This object provides the connection to a microarray probe alignment and annotation database.</p>
+<p>#############
+## Database tables and their attributes:
+##
+# +------------------
+# | probe_information
+# +------------------
+# | - probe_id                    : the id of the probe.
+# | - x                           : the x position of the probe on the array.
+# | - y                           : the y position of the probe on the array.
+# | - platform                    : the microarray platform (microarray name).
+# | - sequence                    : the probe's sequence.
+# | - nr_chrom_map                : the number of complete genomic alignments.
+# | - nr_chrom_map_mm1            : the number of genomic alignments with one mismatch.
+# | - nr_chrom_map_mmall          : the number of genomic alignments with one mismatch.
+# | - nr_gene_map                 : the number of alignments to different genes.
+# | - nr_gene_map_mm              : the number of alignments to genes with a mismatch.
+# | - gc_count                    : the number of G-C nucleotides in the probe's sequence.
+# | - cel_index                   : the position of the probe within a cel file.
+# +------------------
+#
+# +------------------
+# | probe_alignments
+# +------------------
+# | - probes_pk                   : unique identifier for the alignment.
+# | - probe_id                    : the id of the probe.
+# | - x                           : the x index of the probe on the array.
+# | - y                           : the y index of the probe on the array.
+# | - seq_name                    : the name of the sequence, either transcript id or chromosome name.
+# | - seq_type                    : the type of sequence, either cdna or chromosome.
+# | - start                       : the start position of the alignment.
+# | - end                         : the end position of the alignment.
+# | - seq_strand                  : the strand of the sequence to which the probe is aligned. Note that for alignments to cdna this should, for sense target arrays always be &quot;-&quot;.
+# | - missmatches                 : number of mismatches of the alignment.
+# +------------------
+#
+# +------------------
+# | probe_to_exon_transcript
+# +------------------
+# | - transcript_id               : the transcript id.
+# | - gene_id                     : the gene id.
+# | - probes_fk                   : primary key for the alignment in the probe_alignments table.
+# | - chromosome_strand           : the chromosome strand on which the gene is encoded.
+# | - probe_id                    : the probe id.
+# | - exon_id                     : the exon id.
+# | - probe_alignment_exon_start  : start position of the alignment within the exon.
+# | - probe_alignment_exon_end    : end position of the alignment within the exon.
+# | - position_of_alignment       : for exon junction probes: the order of the alignment segments.
+# | - is_junction_alignment       : 1 if the alignment is over an exon junction.
+# +------------------</p>
+<p># +------------------
+# | exon_transcript
+# +------------------
+# | - exon_transcript_pk
+# | - gene_id
+# | - gene_name
+# | - gene_biotype
+# | - chromosome_name
+# | - transcript_id
+# | - transcript_chrom_start
+# | - transcript_chrom_end
+# | - transcript_chrom_strand
+# | - transcript_coding_chrom_start
+# | - transcript_coding_chrom_end
+# | - exon_id
+# | - exon_chrom_start
+# | - exon_chrom_end
+# | - transcript_biotype
+# | - coord_system
+# +------------------</p>
+<p>
+</p>
+<h2><a name="methods">Methods</a></h2>
+<p>
+</p>
+<h3><a name="new">new</a></h3>
+<p>Creates a new connection to the database. host, user, password and db name can be either provided directly or via a configuration file (parameter config_file).</p>
+<p>my $db_adaptor = CustomCDF::DBAadaptor-&gt;new( host=&gt;&quot;localhost&quot;, username=&gt;&quot;anonuser&quot;, password=&gt;&quot;&quot;, dbname=&gt;&quot;homo_sapiens_hugene_cdna_73&quot; );
+$db_adaptor::db_con;</p>
+<p>
+</p>
+<h3><a name="get_probe_adaptor">get_probe_adaptor</a></h3>
+<p>Returns a CustomCDF::ProbeAdaptor to fetch probes and their alignment from the database. Note: for each ProbeAdaptor a new database connection will be created.</p>
+<p>
+</p>
+<h3><a name="get_gene_adaptor">get_gene_adaptor</a></h3>
+<p>Returns a CustomCDF::GeneAdaptor to fetch genes, transcripts and exons from the database. Note: for each GeneAdaptor a new database connection will be created.</p>
+<p>
+</p>
+<h3><a name="dbcon">dbcon</a></h3>
+<p>returns the db connection.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Johannes Rainer &lt;<a href="mailto:johannes.rainer@i-med.ac.at">johannes.rainer@i-med.ac.at</a>&gt;</p>
+
+</body>
+
+</html>

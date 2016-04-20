@@ -1,0 +1,11 @@
+Package: moex10stv174probe
+Title: Probe sequence data for Affymetrix MoEx microarrays, custom CDF file/package moex10stv174cdf
+Version: 0.3.0
+Created: Tue Oct 08 2013
+Author: Johannes Rainer
+Description: Probe sequence data for Affymetrix MoExon arrays derived from Affymetrix. Probe package contains all probes/probesets defined in the moex10stv174cdf package. Contains no MM probes. Contains only probes perfectly matching Ensembl transcripts. Contains also probes for background probes, i.e. probes that can not be aligned to the mouse genome.
+Maintainer: Johannes Rainer <johannes.rainer@i-med.ac.at>
+Depends: R (>= 1.6), AnnotationDbi (>= 1.5.19), moex10stv174cdf (>= 0.3.0)
+License:  LGPL
+biocViews: AnnotationData, AffymetrixChip, moex10stv174, Mus_musculus
+Packaged: Tue Oct 08 2013; jo

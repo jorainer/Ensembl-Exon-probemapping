@@ -1,0 +1,234 @@
+\chapter{Generating of the custom CDF package}
+
+\SweaveOpts{eps=FALSE}
+
+<<results=hide,echo=FALSE>>=
+
+## Note: do only have to edit this here...
+ENSEMBL_VERSION <- "73"
+
+@
+
+Creating a \textit{gene level} CDF (Cel Definition File) package
+for the Affymetrix Human Gene ST microarray containing also intronic probe sets. The CDF file/package
+bases on a complete re-alignment of all probe sequences on the corresponding
+microarray to the genomic DNA and re-annotation of these alignments to
+genes (defined in Ensembl version \Sexpr{ENSEMBL_VERSION}).
+
+The CDF contains definitions of gene probe sets containing all
+probes targeting any of the genes' transcripts/exons. In addition, if possible, a intronic probe set is defined for the gene with all probes that are perfectly aligned in the gene's introns. Such intronic probe sets do not contain probes annotated to any gene's exons, thus, if another gene is encoded in the introns of a gene (e.g. as it can be frequently seen for microRNA genes) all probes targeting that gene in the intron are removed from the host gene's intronic probe set.
+
+Probes with more than one complete, or single missmatch alignment
+against the genome are excluded. In other words the probe sets in the
+CDF contain only probes that unique in the genome, also allowing up to
+1 missmatch in the alignment.
+Probes with a C and G content higher 18 are also excluded.
+
+Besides these \textit{perfect match} probes, the CDF contains also
+background probes (binned into background probe sets by their C and G
+content). Background probes are probes that can not be aligned to the
+genome, also allowing 1 miss-match.
+
+A general information of the settings during the re-alignment are
+given below.
+
+\begin{scriptsize}
+<<>>=
+Info <- readLines( paste( "CDF/hugene10stv1_",
+                         ENSEMBL_VERSION,
+                         "_020genesinex.cdf.settings", sep="" ) )
+Info
+@
+\end{scriptsize}
+
+
+
+\begin{scriptsize}
+<<results=hide>>=
+library(affy)
+library(makecdfenv)
+library(affxparser)
+@
+\end{scriptsize}
+
+Converting the text based CDF into a binary CDF file using functions
+from the affxparser package.
+
+\begin{scriptsize}
+<<results=hide>>=
+convertCdf(filename=paste( "CDF/hugene10stv1_",
+             ENSEMBL_VERSION,
+             "_020genesinex.cdf", sep="" ),
+           outFilename=paste( "CDF/hugene10stv1_",
+             ENSEMBL_VERSION
+             ,"_020genesinex-bin.cdf", sep="" ), verbose=10)
+@
+\end{scriptsize}
+
+Creating a CDF package using the makecdfenv package.
+
+\begin{scriptsize}
+<<results=hide>>=
+CDFNAME <- paste( "hugene10stv1",
+                 sub( ENSEMBL_VERSION, pattern="_", replacement="" ),
+                 "geneinexcdf", sep="" )
+make.cdf.package(filename=paste( "CDF/hugene10stv1_",
+                   ENSEMBL_VERSION,
+                   "_020genesinex-bin.cdf", sep="" ),
+                 author="johannes rainer",
+                 version="0.2.0",
+                 maintainer="johannes rainer <johannes.rainer@i-med.ac.at>",
+                 species="Homo_sapiens",
+                 packagename=CDFNAME,
+                 verbose=10)
+@
+\end{scriptsize}
+
+Verifying that the numbers of probes per probe set defined in the CDF
+environments match those reported in the annotation file. The
+annotation file is than also saved as an Rdata object.
+
+\begin{scriptsize}
+<<results=hide>>=
+gc()
+annot <- read.table( gzfile( paste(  "CDF/hugene10stv1_",
+                                        ENSEMBL_VERSION
+                                        ,"_020genesinex.cdf.annotation.txt.gz", sep="" ) ),
+                         header=TRUE, as.is=TRUE, sep="\t" )
+rownames( annot ) <- annot[ , "probeset_id" ]
+save( annot, file=paste( "annotation/annot_human_gene_ginex_",
+               ENSEMBL_VERSION,
+               ".Rdata",sep="" ) )
+
+load( paste( CDFNAME, "/data/", CDFNAME, ".rda", sep="" ) )
+
+@
+\end{scriptsize}
+
+The CDF package generated from the binary CDF file (which was converted into binary format using the \textit{affxparser} package) contains information for \Sexpr{length(ls(get(CDFNAME)))} probesets. The original CDF file contains in total annotations for \Sexpr{ nrow(annot) } probeset.
+\\
+Next we are checking if the number of probes per probeset as defined in the annotation file equals the number of probes per probeset in the generated CDF environment/package.
+
+\begin{scriptsize}
+<<checkCDFprobes,results=hide>>=
+for(i in 1:nrow(annot)){
+	if( nrow( get( annot[ i, "probeset_id" ], get( CDFNAME ) ) ) != annot[ i, "probe_count"] ){
+		stop( paste("ERROR! got", nrow( get( annot[ i, "probeset_id" ], get( CDFNAME ) ) ), "for probeset", annot[ i, "probeset_id"]), "but it should be", annot[ i, "probe_count" ] )
+	}
+}
+bgprobes <- grep(annot[, "probeset_id"], pattern="bg")
+intronprobes <- grep( annot[ , "probeset_id" ], pattern="intron" )
+@
+\end{scriptsize}
+
+The CDF contains definition for \Sexpr{(nrow(annot)-length(bgprobes)-length(intronprobes))} different gene probe sets, which represent \Sexpr{length(unique(annot[-c(bgprobes,intronprobes),"gene_id"]))} Ensembl genes.
+The table below shows an overview of the probe sets defined for the microarray.
+
+<<overviewProbessets,results=tex,echo=FALSE>>=
+
+library( xtable )
+T <- matrix( ncol=1, nrow=4 )
+colnames( T) <- "number of probe sets"
+rownames( T ) <- c( "gene", "intron", "background", "all" )
+T[ 1, 1 ] <- nrow( annot )-length(bgprobes)-length(intronprobes)
+T[ 2, 1 ] <- length(intronprobes)
+T[ 3, 1 ] <- length(bgprobes)
+T[ 4, 1 ] <- nrow( annot )
+print( xtable( T, caption="Number of probes defined in the CDF for genes, introns and number of available background probe sets." ), size="small", table.placement="H" )
+@
+
+The table below lists the number of probes per gene biotype (as defined in the Ensembl database).
+<<biotypeOverview,results=tex,echo=FALSE>>=
+### HERE
+library( xtable )
+annot.dummy <- unique( annot[ , c( "gene_id", "gene_biotype" ) ] )   ## thus we can also use this for transcript cdf
+T <- sort( table(annot.dummy$gene_biotype), decreasing=TRUE )
+Tmat <- matrix( nrow=length( T ), ncol=1 )
+colnames( Tmat ) <- "number of probe sets"
+rownames( Tmat ) <- names( T )
+Tmat[ , 1 ] <- as.numeric( T )
+print( xtable( Tmat, digits=0, caption="Number of probe sets per gene biotype." ), table.placement="H", size="small", tabular.environment="longtable", floating=FALSE )
+@
+
+Additionally \Sexpr{length(bgprobes)} \textit{background probesets} where defined that can not be aligned to the human genome (see table below for additional informations regarding the background probes).
+\begin{scriptsize}
+<<results=tex>>=
+library(xtable)
+T <- annot[ bgprobes, c("probeset_id", "gene_id", "probe_count") ]
+T <- xtable( T, caption="Background probesets that can not be aligned to the genome. Individual probes are grouped to probesets by the number of G and Cs in the sequence" )
+print(T, table.placement="H")
+@
+\end{scriptsize}
+
+\begin{figure}[H]
+\begin{center}
+\begin{scriptsize}
+<<fig=TRUE, results=hide,echo=FALSE>>=
+### HERE
+PR.sub <- annot[ -bgprobes, "probe_count" ]
+more.100 <- sum( PR.sub > 100 )
+hist( PR.sub[ PR.sub < 100 ], breaks=seq(1, 100, 1) , main="No. of probes per probe set", ylab="No. of probe sets", xlab="No. of probes")
+@
+\end{scriptsize}
+\caption{Distribution of the number of probes per probe set. \Sexpr{more.100} probe sets have more than 100 probes (not displayed in the histogram).}
+\end{center}
+\end{figure}
+
+
+\begin{figure}[H]
+\begin{center}
+\begin{scriptsize}
+<<fig=TRUE, results=hide,echo=FALSE,width=8, height=4>>=
+par( mfrow=c( 1, 2 ) )
+PC.gene <- annot[ -c( bgprobes, intronprobes ), "probe_count" ]
+PC.intron <- annot[ intronprobes, "probe_count" ]
+more.100.gene <- sum( PC.gene > 100 )
+more.100.intron <- sum( PC.intron > 100 )
+## gene
+hist( PC.gene[ PC.gene < 100 ], breaks=seq(1, 100, 1) , main="Gene probe sets", ylab="No. of probe sets", xlab="No. of probes")
+## intron
+hist( PC.intron[ PC.intron < 100 ], breaks=seq(1, 100, 1) , main="Intron probe sets", ylab="No. of probe sets", xlab="No. of probes")
+
+@
+\end{scriptsize}
+\caption{Distribution of the number of probes for gene probe sets (left) and intronic probe sets (right). \Sexpr{more.100.gene} and \Sexpr{more.100.intron} gene and intron probe sets have more than 100 probes, respectively (not displayed in the histogram).}
+\end{center}
+\end{figure}
+
+
+
+
+\section{Creating the probe package}
+
+The \texttt{makeProbePackage} from the \texttt{matchProbes} package can not be used to create this package, since it requires PM and corresponding MM probes. Thus creating the probe package using the simple R code below.
+
+\begin{scriptsize}
+<<results=hide>>=
+PROBENAME <- sub( CDFNAME, pattern="cdf", replacement="probe" )
+dummy <- read.table( gzfile( paste( "CDF/hugene10stv1_",
+                                   ENSEMBL_VERSION,
+                                   "_020genesinex.cdf.probes.txt.gz", sep="" ) ),
+                    sep="\t", as.is=TRUE, header=TRUE)
+dummy <- dummy[ , c("Probe.Sequence", "Probe.X", "Probe.Y", "Probe.Set.Name", "Probe.Interrogation.Position", "Target.Strandedness")]
+colnames( dummy )[1:3] <- c("sequence", "x", "y")
+assign( PROBENAME, dummy )
+save( list=PROBENAME, file=paste( "CDF/",
+                        PROBENAME,
+                        "/data/",
+                        PROBENAME,
+                        ".rda", sep="" ) )
+
+@
+\end{scriptsize}
+
+
+\begin{scriptsize}
+<<results=tex>>=
+toLatex(sessionInfo())
+@
+\end{scriptsize}
+
+
+
+
+

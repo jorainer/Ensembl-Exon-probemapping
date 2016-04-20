@@ -1,0 +1,4 @@
+Put the fasta files with Affymetrix probe sequences in here.
+These should be available from Affymetrix.
+Examples would be:
+HuGene-2_0-st.fasta

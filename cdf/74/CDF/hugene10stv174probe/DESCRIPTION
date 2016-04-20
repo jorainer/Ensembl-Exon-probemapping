@@ -1,0 +1,11 @@
+Package: hugene10stv174probe
+Title: Probe sequence data for Affymetrix HuGene microarrays, custom CDF file/package hugene10stv174cdf
+Version: 0.3.0
+Created: Tue Dec 10 2013
+Author: Johannes Rainer
+Description: Probe sequence data for Affymetrix HuGene arrays derived from Affymetrix. Probe package contains all probes/probesets defined in the hugene10stv274cdf package. Contains no MM probes. Contains only probes perfectly matching Ensembl transcripts. Contains also probes for background probes, i.e. probes that can not be aligned to the human genome.
+Maintainer: Johannes Rainer <johannes.rainer@i-med.ac.at>
+Depends: R (>= 1.6), AnnotationDbi (>= 1.5.19), hugene10stv174cdf (>= 0.3.0)
+License:  LGPL
+biocViews: AnnotationData, AffymetrixChip, hugene10stv174, Homo_sapiens
+Packaged: Tue Dec 10 2013; jo

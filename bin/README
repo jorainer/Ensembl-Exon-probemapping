@@ -1,0 +1,57 @@
+Versions 0.3.x: (2013-12)
+* Alignment is performed against cDNA, ncRNA and genome.
+* Full alignment and annotation pipeline is in a single perl script (cdna_alignment).
+
+
+The perl and python scripts in this folder can be used to perform the alignment of probe sequences
+of Affymetrix microarrays to the genome and to generate custom CDF files from these alignments.
+
+Folder bin/cfg contains config files with settings for HuExon, HuGene, MoExon and MoGene microarrays.
+
+Script files for alignment are:
+huexon_annotation.sh
+hugene_annotation.sh
+mogene_annotation.sh
+moexon_annotation.sh
+annotation_pipeline.py
+align_exonerate.pl
+parse_exonerate.pl
+annotate_alignments.pl
+processProbeMapping.pl
+create_exon_transcript_table.pl
+define_nonoverlapping_exon_regions.pl
+
+The whole alignment and annotation pipeline is started by the shell scripts and the various
+scripts are called sequentially as illustrated for the HuGene microarray:
+hugene_annotation.sh
+|-> annotation_pipeline.py
+      |-> align_exonerate.pl
+            |-> parse_exonerate.pl
+            |-> annotate_alignments.pl
+      |-> processProbeMapping.pl
+      |-> create_exon_transcript_table.pl
+      |-> define_nonoverlapping_exon_regions.pl
+
+align_exonerate is thereby called iteratively for each chromosome.
+align_exonerate.pl calls exonerate to align all probe sequences against the sequence of a chromosome.
+parse_exonerate.pl reads the exonerate output file and stores alignments that pass a filter criteria to the
+		      annotation database.
+annotate_alignments.pl queries the Ensembl core database to determine whether probe alignments are
+		       inside exon boundaries.
+processProbeMapping.pl simply summarizes alignment information for each individual probe.
+create_exon_transcript_table.pl queries the Ensembl core database and creates a database table
+			containing all exons and transcripts.
+define_nonoverlapping_exon_regions.pl creates a database table defining so called exon regions, which
+		 	are non-overlapping parts of exons of the same gene. for a detailed description see
+			Rainer et al. Molecular Endocrinology 2012.
+
+
+Custom CDF files.
+makeCdfFromDB.pl and makeGeneCdfFromDB.pl are perl scripts that create (text file) CDF files.
+
+check_update_Ensembl.pl is a very useful script that compares locally downloaded versions of
+ 			Ensembl (API, fasta files etc) with the available online version and
+			downloads eventual newer versions. Allows to download the perl API,
+			genomic fasta files and the Ensembl core MySQL database.
+
+getCVS.sh, installEnsemblDB.pl are simple scripts to fetch the Ensembl perl API or Ensembl databases.
